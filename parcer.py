@@ -11,22 +11,23 @@ import spacy
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
-nltk.download('universal_tagset')
-nltk.download('averaged_perceptron_tagger_ru')
+# nltk.download('universal_tagset')
+# nltk.download('averaged_perceptron_tagger_ru')
 
-file = open("/Documents/example.pdf", 'rb')
+# init pdf file
+file = open("Documents/example.pdf", 'rb')
 
-
+# read from file
 reader = PdfReader(file)
 print(len(reader.pages))
 page = reader.pages[0]
-text = page.extract_text()
+text = page.extract_text() # get text from file
 # print(text)
 # print(sent_tokenize(text))
 # print(word_tokenize(text))
 
 
-
+# get rid of necessary words
 stop_words = set(stopwords.words("russian"))
 filtered_list = []
 for word in word_tokenize(text):
@@ -34,11 +35,30 @@ for word in word_tokenize(text):
         filtered_list.append(word)
 # print(filtered_list)
 
-steamer = PorterStemmer()
+# steamer = PorterStemmer()
 
-filtered = list(filter(lambda x: x != ',' and x != '.', filtered_list))
-f = list(filtered)
+
+# get rid of punctuation symbols
+filtered = list(filter(lambda x: x != ',' and x != '.' and x != ', ', filtered_list))
+filtered = list(filtered)
 # print(f)
+
+import pymorphy2
+morph = pymorphy2.MorphAnalyzer()
+words_dict = {}
+
+for token in filtered:
+    if 'ЗПР' not in morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in morph.parse(token)[0].tag.cyr_repr and 'Н' not in morph.parse(token)[0].tag.cyr_repr and '-' not in morph.parse(token)[0].word:
+        # print(morph.parse(token)[0].word ,morph.parse(token)[0].tag.cyr_repr) # get word and it's morph discription
+        words_dict[morph.parse(token)[0].word] = morph.parse(token)[0].tag.cyr_repr
+
+# sorted(words_dict.keys())
+# sorted_words_dict = sorted(words_dict)
+print(sorted(words_dict.items()))
+
+
+
+
 
 
 # rs = RussianStemmer()
@@ -89,12 +109,8 @@ f = list(filtered)
 
 
 
-import pymorphy2
-morph = pymorphy2.MorphAnalyzer()
-# morph.lat2cyr('NOUN')
-for t in f:
-    print(morph.parse(t))
-print(morph.parse('мама'))
+
+
 
 
 class Parcer:
