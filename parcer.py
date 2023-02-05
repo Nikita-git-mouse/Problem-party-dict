@@ -46,17 +46,30 @@ filtered = list(filtered)
 import pymorphy2
 morph = pymorphy2.MorphAnalyzer()
 words_dict = {}
+normal_form_list =[]
 
 for token in filtered:
-    if 'ЗПР' not in morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in morph.parse(token)[0].tag.cyr_repr and 'Н' not in morph.parse(token)[0].tag.cyr_repr and '-' not in morph.parse(token)[0].word:
+    if 'ЗПР' not in morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in morph.parse(token)[0].tag.cyr_repr and 'Н' not in morph.parse(token)[0].tag.cyr_repr and 'ЧАСТ' not in morph.parse(token)[0].tag.cyr_repr and '-' not in morph.parse(token)[0].word:
         # print(morph.parse(token)[0].word ,morph.parse(token)[0].tag.cyr_repr) # get word and it's morph discription
         words_dict[morph.parse(token)[0].word] = morph.parse(token)[0].tag.cyr_repr
+        # nf_list.append(morph.parse(token)[0].inflect({'sing', 'nomn'}))
+        # print(morph.parse(token)[0].normal_form)
+        normal_form_list.append(morph.parse(token)[0].normal_form)
+        # print('- ',morph.parse(token)[0].make_agree_with_number(1).word)
+
 
 # sorted(words_dict.keys())
 # sorted_words_dict = sorted(words_dict)
 print(sorted(words_dict.items()))
-
-
+print(sorted(normal_form_list))
+for x in sorted(normal_form_list):
+    try:
+        for i in morph.parse(x)[0].lexeme:
+            print('-', i.word, '-', i.tag.cyr_repr)
+    except:
+        print(morph.parse(x)[0].word)
+    # print('3 - ', morph.parse(x)[0].make_agree_with_number(3).word)
+    # print('4 - ', morph.parse(x)[0].make_agree_with_number(5).word)
 
 
 
