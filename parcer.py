@@ -154,7 +154,7 @@ class Parser:
                 if self.stemmer.stem(word) in i.word:
                     # print('- ', i.word.replace(self.stemmer.stem(word),''))
                     buf_list.append(i.word.replace(self.stemmer.stem(word),''))
-            self.word_ending_dict[self.morph.parse(word)[0].word] = buf_list
+            self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
 
 
     def get_word_info(self):
