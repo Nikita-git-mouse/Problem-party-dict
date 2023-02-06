@@ -45,7 +45,7 @@ nltk.download('wordnet')
 
 # morph = pymorphy2.MorphAnalyzer()
 # words_dict = {}
-# normal_form_list =[]
+# normal_form_dict =[]
 # word_info_list = []
 #
 # rs = RussianStemmer()
@@ -71,7 +71,7 @@ nltk.download('wordnet')
 #         words_dict[morph.parse(token)[0].word] = morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split()
 #         # nf_list.append(morph.parse(token)[0].inflect({'sing', 'nomn'}))
 #         # print(morph.parse(token)[0].normal_form)
-#         normal_form_list.append(morph.parse(token)[0].normal_form)
+#         normal_form_dict.append(morph.parse(token)[0].normal_form)
 #         # add to the info list a list of each word info
 #         word_info_list.append(morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split())
 #         # get base of the word
@@ -82,12 +82,12 @@ nltk.download('wordnet')
 # # отсортированный словарь слов с доп инфой
 # print((words_dict.items()))
 # # отсортированный список начальных форм слова
-# print((normal_form_list))
+# print((normal_form_dict))
 # print(word_info_list)
 # print(word_base_list)
 
 
-# for x in sorted(normal_form_list):
+# for x in sorted(normal_form_dict):
 #     try:
 #         for i in morph.parse(x)[0].lexeme: # склонение слов по падежам
 #             print('-', i.word, '-', i.tag.cyr_repr)
@@ -123,9 +123,10 @@ class Parser:
         # all needed lists
         self.words_dict = {}
         self.filtered_list = []
-        self.normal_form_list = []
+        self.normal_form_dict = {}
         self.word_info_list = []
         self.word_base_list = []
+        self.word_ending_dict = {}
 
 
 
@@ -143,6 +144,17 @@ class Parser:
         # lowcase all the words and sort them
         self.filtered_list = sorted([x.lower() for x in self.filtered_list])
 
+    def get_word_ending_list(self):
+        for word in self.words_dict:
+            # print('# ',self.stemmer.stem(word))
+            buf_list = []
+            # print(self.morph.parse(word)[0].inflect({'gent'}))
+            for i in self.morph.parse(word)[0].lexeme:
+                # print('= ', i.word)
+                if self.stemmer.stem(word) in i.word:
+                    # print('- ', i.word.replace(self.stemmer.stem(word),''))
+                    buf_list.append(i.word.replace(self.stemmer.stem(word),''))
+            self.word_ending_dict[self.morph.parse(word)[0].word] = buf_list
 
 
     def get_word_info(self):
@@ -152,7 +164,7 @@ class Parser:
                 # print(morph.parse(token))
                 self.words_dict[self.morph.parse(token)[0].word] = self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split()
                 # get word's NORMAL FORM
-                self.normal_form_list.append(self.morph.parse(token)[0].normal_form)
+                self.normal_form_dict[self.morph.parse(token)[0].word] = self.morph.parse(token)[0].normal_form
                 # add to the info list a list of each word info
                 self.word_info_list.append(self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split())
                 # get base of the word
@@ -160,16 +172,21 @@ class Parser:
 
     def show_info(self):
         print('dict ', self.words_dict)
-        print('normal form ', self.normal_form_list)
+        print('normal form ', self.normal_form_dict)
         print('info ', self.word_info_list)
         print('base ', self.word_base_list)
+        print('endings', self.word_ending_dict)
 
 
 if __name__ == '__main__':
     parser = Parser("Documents/example.pdf")
     parser.filter_text()
     parser.get_word_info()
+    parser.get_word_ending_list()
     parser.show_info()
+
+
+
 
 # s = [rs.stem(word) for word in f]
 # print(list(s))
