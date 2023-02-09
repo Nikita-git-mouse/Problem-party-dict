@@ -157,27 +157,45 @@ class Parser:
                     buf_list.append(i.word.replace(self.stemmer.stem(word),''))
             self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
 
-    def get_inflect_on_word_case(self, word, word_case):
+    def get_inflect_on_word_case(self, word, word_case, word_number):
         # print(self.morph.parse(token))
         try:
-            if word_case == 'И.п.':
+            if word_case == 'И.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'nomn'}).word)
-            elif word_case == 'Р.п.':
+                print(self.morph.parse(word)[0].inflect({'sing','nomn'}).word)
+            elif word_case == 'И.п.' and word_number == 'мн.ч.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'plur','nomn'}).word)
+            elif word_case == 'Р.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
                 print(self.morph.parse(word)[0].inflect({'gent'}).word)
-            elif word_case == 'Д.п.':
+            elif word_case == 'Р.п.' and word_number == 'мн.ч.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'plur','gent'}).word)
+            elif word_case == 'Д.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
                 print(self.morph.parse(word)[0].inflect({'datv'}).word)
-            elif word_case == 'В.п.':
+            elif word_case == 'Д.п.' and word_number == 'мн.ч.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'plur','datv'}).word)
+            elif word_case == 'В.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
                 print(self.morph.parse(word)[0].inflect({'accs'}).word)
-            elif word_case == 'Т.п.':
+            elif word_case == 'В.п.' and word_number == 'мн.ч.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'plur','accs'}).word)
+            elif word_case == 'Т.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
                 print(self.morph.parse(word)[0].inflect({'ablt'}).word)
-            elif word_case == 'П.п.':
+            elif word_case == 'Т.п.' and word_number == 'мн.ч.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'plur','ablt'}).word)
+            elif word_case == 'П.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
                 print(self.morph.parse(word)[0].inflect({'loct'}).word)
+            elif word_case == 'П.п.' and word_number == 'мн.ч.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'plur','loct'}).word)
         except:
             pass
 
@@ -218,58 +236,7 @@ if __name__ == '__main__':
     parser.get_word_ending_list()
     # parser.show_info()
     # parser.get_lexeme_with_info()
-    parser.get_inflect_on_word_case('маму', 'Р.п.')
-
-
-
-
-# s = [rs.stem(word) for word in f]
-# print(list(s))
-#
-#
-#
-#
-#
-#
-# voc = nltk.tag.pos_tag(f,lang='rus')
-# print(voc)
-#
-# lemmatizer = WordNetLemmatizer()
-# print(lemmatizer.lemmatize('яблоки'))
-#
-#
-# from spacy.lang.ru.examples import sentences
-#
-# nlp_ru = spacy.load("ru_core_news_sm")
-# doc = nlp_ru(text)
-# print(type(text))
-# print(type(f[0]))
-# for t in doc:
-#     print(t.text, t.pos_)
-
-
-# узнать часть речи
-# for pare in voc:
-#
-#     if pare[1] == 'S':
-#         print(pare, 'существительное')
-#     elif pare[1] == 'V':
-#         print(pare, 'глагол')
-#     elif pare[1] == 'ADV':
-#         print(pare, 'прилагательное')
-#     elif pare[1] == 'A=m':
-#         print(pare, 'краткое причастие')
-#     elif pare[1] == 'A-PRO=pl':
-#         print(pare, 'причастие')
-#     s = pare[0]
-#
-#     if pare[0][len(pare[0])-1] == 'о':
-#
-#         print(pare, 'наречие')
-
-
-
-
+    parser.get_inflect_on_word_case('маму', 'Р.п.', 'мн.ч.')
 
 
 
