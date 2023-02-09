@@ -130,6 +130,14 @@ class Parser:
         self.word_ending_dict = {}
 
 
+    def prepare_text(self):
+        """
+        function to make all nessesary text's manipulations
+        :return:
+        """
+        self.filter_text()
+        self.get_word_ending_list()
+        self.get_word_info()
 
     def filter_text(self):
         # get rid of necessary words
@@ -231,12 +239,11 @@ class Parser:
 
 if __name__ == '__main__':
     parser = Parser("Documents/example1.pdf")
-    parser.filter_text()
-    parser.get_word_info()
-    parser.get_word_ending_list()
+    parser.prepare_text()
+
     # parser.show_info()
     # parser.get_lexeme_with_info()
-    parser.get_inflect_on_word_case('маму', 'Р.п.', 'мн.ч.')
+    # parser.get_inflect_on_word_case('маму', 'Р.п.', 'мн.ч.')
 
 
 
