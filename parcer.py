@@ -157,10 +157,34 @@ class Parser:
                     buf_list.append(i.word.replace(self.stemmer.stem(word),''))
             self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
 
+    def get_inflect_on_word_case(self, word, word_case):
+        # print(self.morph.parse(token))
+        try:
+            if word_case == 'И.п.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'nomn'}).word)
+            elif word_case == 'Р.п.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'gent'}).word)
+            elif word_case == 'Д.п.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'datv'}).word)
+            elif word_case == 'В.п.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'accs'}).word)
+            elif word_case == 'Т.п.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'ablt'}).word)
+            elif word_case == 'П.п.':
+                # for token in self.word_list:
+                print(self.morph.parse(word)[0].inflect({'loct'}).word)
+        except:
+            pass
+
 
     def get_word_info(self):
         for token in self.filtered_list:
-            if 'ЗПР' not in self.morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in self.morph.parse(token)[0].tag.cyr_repr and 'Н' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧАСТ' not in self.morph.parse(token)[0].tag.cyr_repr and '-' not in self.morph.parse(token)[0].word:
+            if 'ЗПР' not in self.morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧИСЛО' not in self.morph.parse(token)[0].tag.cyr_repr and 'Н' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧАСТ' not in self.morph.parse(token)[0].tag.cyr_repr and '-' not in self.morph.parse(token)[0].word:
                 # print(morph.parse(token)[0].word ,morph.parse(token)[0].tag.cyr_repr) # get word and it's morph discription
                 # print(morph.parse(token))
                 self.words_dict[self.morph.parse(token)[0].word] = self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split()
@@ -192,8 +216,9 @@ if __name__ == '__main__':
     parser.filter_text()
     parser.get_word_info()
     parser.get_word_ending_list()
-    parser.show_info()
-    parser.get_lexeme_with_info()
+    # parser.show_info()
+    # parser.get_lexeme_with_info()
+    parser.get_inflect_on_word_case('маму', 'Р.п.')
 
 
 
