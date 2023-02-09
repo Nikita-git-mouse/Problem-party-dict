@@ -122,6 +122,7 @@ class Parser:
 
         # all needed lists
         self.words_dict = {}
+        self.word_list = []
         self.filtered_list = []
         self.normal_form_dict = {}
         self.word_info_list = []
@@ -163,12 +164,15 @@ class Parser:
                 # print(morph.parse(token)[0].word ,morph.parse(token)[0].tag.cyr_repr) # get word and it's morph discription
                 # print(morph.parse(token))
                 self.words_dict[self.morph.parse(token)[0].word] = self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split()
+                self.word_list.append(self.morph.parse(token)[0].word)
                 # get word's NORMAL FORM
                 self.normal_form_dict[self.morph.parse(token)[0].word] = self.morph.parse(token)[0].normal_form
                 # add to the info list a list of each word info
                 self.word_info_list.append(self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split())
                 # get base of the word
                 self.word_base_list.append(self.stemmer.stem(self.morph.parse(token)[0].word))
+
+
 
     def show_info(self):
         print('dict ', self.words_dict)
@@ -178,12 +182,18 @@ class Parser:
         print('endings', self.word_ending_dict)
 
 
+    def get_lexeme_with_info(self):
+        for word_index in range(len(self.words_dict)):
+            print(self.word_list[word_index], self.word_base_list[word_index], self.word_info_list[word_index][0], self.word_ending_dict[self.word_base_list[word_index]])
+
+
 if __name__ == '__main__':
-    parser = Parser("Documents/example.pdf")
+    parser = Parser("Documents/example1.pdf")
     parser.filter_text()
     parser.get_word_info()
     parser.get_word_ending_list()
     parser.show_info()
+    parser.get_lexeme_with_info()
 
 
 
