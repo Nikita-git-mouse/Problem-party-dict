@@ -243,7 +243,8 @@ class MyWidget(QWidget):
                 self.word_base_list.append(self.stemmer.stem(self.morph.parse(token)[0].word))
 
     def show_info(self):
-        print('dict ',self.words_dict, len(self.words_dict))
+        pass
+        # print('dict ',self.words_dict, len(self.words_dict))
         # print('normal form ', self.normal_form_dict)
         # print('info ', self.word_info_list)
         # print('base ', self.word_base_list)
