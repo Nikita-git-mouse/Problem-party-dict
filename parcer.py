@@ -218,7 +218,7 @@ class Parser:
 
 
     def show_info(self):
-        print('dict ', self.words_dict, len(self.words_dict))
+        print('dict ',self.words_dict, len(self.words_dict))
         # print('normal form ', self.normal_form_dict)
         # print('info ', self.word_info_list)
         # print('base ', self.word_base_list)
