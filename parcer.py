@@ -5,7 +5,7 @@ from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk.stem.snowball import RussianStemmer
 
 import nltk
-import spacy
+#import spacy
 import pymorphy2
 
 
@@ -97,14 +97,6 @@ nltk.download('wordnet')
     # print('4 - ', morph.parse(x)[0].make_agree_with_number(5).word)
 
 
-
-
-
-
-
-
-
-
 class Parser:
     def __init__(self, filename):
         # init pdf file   "Documents/example.pdf"
@@ -114,6 +106,7 @@ class Parser:
         self.reader = PdfReader(self.file)
         # print(len(reader.pages))
         self.page = self.reader.pages[0]
+        # self.text = 'текст'
         self.text = self.page.extract_text()  # get text from file
 
         self.morph = pymorphy2.MorphAnalyzer()
@@ -138,6 +131,7 @@ class Parser:
         self.filter_text()
         self.get_word_ending_list()
         self.get_word_info()
+
 
     def filter_text(self):
         # get rid of necessary words
@@ -212,7 +206,7 @@ class Parser:
         for token in self.filtered_list:
             if 'ЗПР' not in self.morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧИСЛО' not in self.morph.parse(token)[0].tag.cyr_repr and 'Н' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧАСТ' not in self.morph.parse(token)[0].tag.cyr_repr and '-' not in self.morph.parse(token)[0].word:
                 # print(morph.parse(token)[0].word ,morph.parse(token)[0].tag.cyr_repr) # get word and it's morph discription
-                # print(morph.parse(token))
+                # print(self.morph.parse(token))
                 self.words_dict[self.morph.parse(token)[0].word] = self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split()
                 self.word_list.append(self.morph.parse(token)[0].word)
                 # get word's NORMAL FORM
@@ -223,13 +217,13 @@ class Parser:
                 self.word_base_list.append(self.stemmer.stem(self.morph.parse(token)[0].word))
 
 
-
     def show_info(self):
-        print('dict ', self.words_dict)
-        print('normal form ', self.normal_form_dict)
-        print('info ', self.word_info_list)
-        print('base ', self.word_base_list)
-        print('endings', self.word_ending_dict)
+        print('dict ', self.words_dict, len(self.words_dict))
+        # print('normal form ', self.normal_form_dict)
+        # print('info ', self.word_info_list)
+        # print('base ', self.word_base_list)
+        # print('endings', self.word_ending_dict)
+       #  print('фильр', self.filtered_list)
 
 
     def get_lexeme_with_info(self):
@@ -238,12 +232,11 @@ class Parser:
 
 
 if __name__ == '__main__':
-    parser = Parser("Documents/example1.pdf")
+    parser = Parser("Documents/example.pdf")
     parser.prepare_text()
-
+    parser.show_info()
     # parser.show_info()
     # parser.get_lexeme_with_info()
-    # parser.get_inflect_on_word_case('маму', 'Р.п.', 'мн.ч.')
 
 
 
