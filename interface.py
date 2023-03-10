@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, QLabel, QMenu, QAction
 from pycparser import CParser
@@ -53,6 +54,8 @@ class MyWidget(QWidget):
         self.text_edit = QTextEdit()
         self.info_label = QLabel('Введите текст для парсинга')
         self.parts_of_speech_button = QPushButton('Части речи')
+
+        self.changeParams = QPushButton('Преобразование')
         self.parser = CParser
         self.help_button = QPushButton('Помощь')
 
@@ -63,6 +66,7 @@ class MyWidget(QWidget):
         left_layout.addWidget(self.parse_button)
         left_layout.addWidget(self.parse_file_button)
         left_layout.addWidget(self.filter_button)
+        left_layout.addWidget(self.changeParams)
         left_layout.addWidget(self.file_button)
         left_layout.addWidget(self.parts_of_speech_button)
 
@@ -77,6 +81,7 @@ class MyWidget(QWidget):
         self.help_button.clicked.connect(self.show_help)
         right_layout.addWidget(self.result_text_edit)
         self.parse_button.clicked.connect(self.parse_text)
+        self.changeParams.clicked.connect(self.changeForm)
         self.parse_file_button.clicked.connect(self.parse_file_text)
         self.filter_button.clicked.connect(self.filter_text)
         self.file_button.clicked.connect(self.open_file)
@@ -86,6 +91,17 @@ class MyWidget(QWidget):
         self.setWindowTitle('Приложение для парсинга текста')
         self.show()
 
+
+
+
+    def show_info(self):
+            print('dict ', self.words_dict)
+            print('normal form ', self.normal_form_dict)
+            print('info ', self.word_info_list)
+            print('base ', self.word_base_list)
+            print('endings', self.word_ending_dict)
+
+
     def parse_text(self):
         parsed_text = self.text_edit.toPlainText().split()
         if len(parsed_text) > 0:
@@ -93,14 +109,70 @@ class MyWidget(QWidget):
             self.prepare_text()
 
             text = '\n'.join([f"{key}: {value}" for key, value in self.words_dict.items()][182:])
+
             self.result_text_edit.setText(text)
             self.text = ''
         else:
             pass
 
+    def get_one_word_ending_list(self, word):
+        # print('# ',self.stemmer.stem(word))
+        buf_list = []
+        # print(self.morph.parse(word)[0].inflect({'gent'}))
+        for i in self.morph.parse(word)[0].lexeme:
+            # print('= ', i.word)
+            if self.stemmer.stem(word) in i.word:
+                # print('- ', i.word.replace(self.stemmer.stem(word),''))
+                buf_list.append(i.word.replace(self.stemmer.stem(word),''))
+        self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
+
     def parse_file_text(self):
-        text = '\n'.join([f"{key}: {value}" for key, value in self.words_dict.items()][1:182])
-        self.result_text_edit.setText(text)
+        dict = list(self.words_dict.items())
+        normal_form = list(self.normal_form_dict.items())
+        base = self.word_base_list
+        array = []
+        print(self.words_dict.keys())
+        if 'ачинают' in self.words_dict:
+            del self.words_dict['ачинают']
+        a = set(list((self.word_base_list)))
+        print(len(self.word_base_list))
+        print(len(a))
+        endings = iter(self.words_dict.keys())
+        for i in range(1, 182):
+            ending = next(endings)
+            ending_len = len(self.word_ending_dict)
+            self.get_one_word_ending_list(ending)
+            new_ending_len = len(self.word_ending_dict)
+            last_key, last_value = list(self.word_ending_dict.items())[-1]
+
+            if new_ending_len > ending_len:
+                array.append([f'Свойства {dict[i]}\nНормальная форма {normal_form[i]}\nОснова слова "{base[i]}"\nОкончания {last_key, last_value}\n'])
+            else:
+                print(len(self.word_ending_dict))
+                array.append([f'Свойства {dict[i]}\nНормальная форма {normal_form[i]}\nОснова слова "{base[i]}"\n'])
+
+        print()
+        # print(len(dict), len(normal_form), len(base), len(endings))
+        string_result = '\n'.join(', '.join(str(x) for x in row) for row in array)
+        self.result_text_edit.setText(string_result)
+        if os.path.isfile('НеБезПрикола.txt'):
+            pass
+        else:
+            with open('НеБезПрикола.txt', 'w') as f:
+                f.write(string_result)
+
+    def showInputImportantInformation(self):
+        pass
+
+    def changeForm(self):
+        parsed_text = self.text_edit.toPlainText().split()
+        print(parsed_text)
+        print(len(parsed_text))
+        if len(parsed_text) == 3:
+            result = self.get_inflect_on_word_case(parsed_text[0], parsed_text[1], parsed_text[2])
+            self.result_text_edit.setText(result)
+        else:
+            pass
 
     def filter_text(self):
         newdict = {}
@@ -161,8 +233,8 @@ class MyWidget(QWidget):
         :return:
         """
         self.filter_text_pars()
-        self.get_word_ending_list()
         self.get_word_info()
+        #self.get_word_ending_list()
 
     def filter_text_pars(self):
         # get rid of necessary words
@@ -186,45 +258,47 @@ class MyWidget(QWidget):
                     buf_list.append(i.word.replace(self.stemmer.stem(word),''))
             self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
 
+
+
     def get_inflect_on_word_case(self, word, word_case, word_number):
         # print(self.morph.parse(token))
         try:
             if word_case == 'И.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'sing','nomn'}).word)
+                return self.morph.parse(word)[0].inflect({'sing','nomn'}).word
             elif word_case == 'И.п.' and word_number == 'мн.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'plur','nomn'}).word)
+                return self.morph.parse(word)[0].inflect({'plur','nomn'}).word
             elif word_case == 'Р.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'gent'}).word)
+                return self.morph.parse(word)[0].inflect({'gent'}).word
             elif word_case == 'Р.п.' and word_number == 'мн.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'plur','gent'}).word)
+                return self.morph.parse(word)[0].inflect({'plur','gent'}).word
             elif word_case == 'Д.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'datv'}).word)
+                return self.morph.parse(word)[0].inflect({'datv'}).word
             elif word_case == 'Д.п.' and word_number == 'мн.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'plur','datv'}).word)
+                return self.morph.parse(word)[0].inflect({'plur','datv'}).word
             elif word_case == 'В.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'accs'}).word)
+                return self.morph.parse(word)[0].inflect({'accs'}).word
             elif word_case == 'В.п.' and word_number == 'мн.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'plur','accs'}).word)
+                return self.morph.parse(word)[0].inflect({'plur','accs'}).word
             elif word_case == 'Т.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'ablt'}).word)
+                return self.morph.parse(word)[0].inflect({'ablt'}).word
             elif word_case == 'Т.п.' and word_number == 'мн.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'plur','ablt'}).word)
+                return self.morph.parse(word)[0].inflect({'plur','ablt'}).word
             elif word_case == 'П.п.' and word_number == 'ед.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'loct'}).word)
+                return self.morph.parse(word)[0].inflect({'loct'}).word
             elif word_case == 'П.п.' and word_number == 'мн.ч.':
                 # for token in self.word_list:
-                print(self.morph.parse(word)[0].inflect({'plur','loct'}).word)
+                return self.morph.parse(word)[0].inflect({'plur','loct'}).word
         except:
             pass
 
@@ -241,15 +315,6 @@ class MyWidget(QWidget):
                 self.word_info_list.append(self.morph.parse(token)[0].tag.cyr_repr.replace(',',' ').split())
                 # get base of the word
                 self.word_base_list.append(self.stemmer.stem(self.morph.parse(token)[0].word))
-
-    def show_info(self):
-        pass
-        # print('dict ',self.words_dict, len(self.words_dict))
-        # print('normal form ', self.normal_form_dict)
-        # print('info ', self.word_info_list)
-        # print('base ', self.word_base_list)
-        # print('endings', self.word_ending_dict)
-        #  print('фильр', self.filtered_list)
 
     def get_lexeme_with_info(self):
         for word_index in range(len(self.words_dict)):
