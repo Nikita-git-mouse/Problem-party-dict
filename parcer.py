@@ -16,7 +16,6 @@ nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger_ru')
 
 
-
 class Parser:
     def __init__(self, filename):
         # init pdf file   "Documents/example.pdf"
@@ -41,7 +40,6 @@ class Parser:
         self.word_base_list = []
         self.word_ending_dict = {}
 
-
     def prepare_text(self):
         """
         function to make all nessesary text's manipulations
@@ -53,7 +51,6 @@ class Parser:
         self.get_word_info()
         # окончания слов?
         self.get_word_ending_list()
-
 
     def filter_text(self):
         """
@@ -73,8 +70,6 @@ class Parser:
         # lowcase all the words and sort them
         self.filtered_list = sorted([x.lower() for x in self.filtered_list])
 
-
-    # нужен ли этот метод вообще??
     def get_word_ending_list(self):
         print(self.word_list)
         for word in self.words_dict:
@@ -87,8 +82,6 @@ class Parser:
                     # print('- ', i.word.replace(self.stemmer.stem(word),''))
                     buf_list.append(i.word.replace(self.stemmer.stem(word),''))
             self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
-
-
 
     def get_inflect_on_word_case(self, word, word_case, word_number):
         """
@@ -138,7 +131,6 @@ class Parser:
         except:
             pass
 
-
     def get_word_info(self):
         for token in self.filtered_list:
             if 'ЗПР' not in self.morph.parse(token)[0].tag.cyr_repr and 'НЕИЗВ' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧИСЛО' not in self.morph.parse(token)[0].tag.cyr_repr and 'Н' not in self.morph.parse(token)[0].tag.cyr_repr and 'ЧАСТ' not in self.morph.parse(token)[0].tag.cyr_repr and '-' not in self.morph.parse(token)[0].word:
@@ -153,8 +145,6 @@ class Parser:
                 # get base of the word
                 self.word_base_list.append(self.stemmer.stem(self.morph.parse(token)[0].word))
 
-
-
     def show_info(self):
         print('dict ', self.words_dict)
         print('normal form ', self.normal_form_dict)
@@ -162,8 +152,9 @@ class Parser:
         print('base ', self.word_base_list)
         print('endings', self.word_ending_dict)
 
-
     def get_lexeme_with_info(self):
+        print(len(self.word_base_list))
+        print(len(self.word_list))
         for word_index in range(len(self.words_dict)):
             print(self.word_list[word_index], self.word_base_list[word_index], self.word_info_list[word_index], self.word_ending_dict[self.word_base_list[word_index]])
 
@@ -176,7 +167,6 @@ if __name__ == '__main__':
     # просто выводит все списки и словари в консоль
     # parser.show_info()
     parser.get_lexeme_with_info()
-
     # вот здесь вот меняются слова словечки по роду и числу->
     parser.get_inflect_on_word_case('жаба', 'Р.п.', 'ед.ч.')
     parser.get_inflect_on_word_case('человек', 'Р.п.', 'мн.ч.')

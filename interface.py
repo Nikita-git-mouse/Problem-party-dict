@@ -91,9 +91,6 @@ class MyWidget(QWidget):
         self.setWindowTitle('Приложение для парсинга текста')
         self.show()
 
-
-
-
     def show_info(self):
             print('dict ', self.words_dict)
             print('normal form ', self.normal_form_dict)
@@ -101,19 +98,17 @@ class MyWidget(QWidget):
             print('base ', self.word_base_list)
             print('endings', self.word_ending_dict)
 
-
     def parse_text(self):
         parsed_text = self.text_edit.toPlainText().split()
         if len(parsed_text) > 0:
             self.text = ' '.join(parsed_text)
             self.prepare_text()
-
-            text = '\n'.join([f"{key}: {value}" for key, value in self.words_dict.items()][182:])
-
-            self.result_text_edit.setText(text)
+            info = '\n'.join([f"{key}: {value}" for key, value in self.words_dict.items()][182:])
+            self.result_text_edit.setText(info)
             self.text = ''
         else:
             pass
+
 
     def get_one_word_ending_list(self, word):
         # print('# ',self.stemmer.stem(word))
@@ -132,34 +127,47 @@ class MyWidget(QWidget):
         base = self.word_base_list
         array = []
         print(self.words_dict.keys())
-        if 'ачинают' in self.words_dict:
-            del self.words_dict['ачинают']
+        # if 'ачинают' in self.words_dict:
+        #     del self.words_dict['ачинают']
         a = set(list((self.word_base_list)))
         print(len(self.word_base_list))
         print(len(a))
         endings = iter(self.words_dict.keys())
-        for i in range(1, 182):
+        for i in range(1, 181):
             ending = next(endings)
             ending_len = len(self.word_ending_dict)
             self.get_one_word_ending_list(ending)
+            new_param = self.word_list
+            new_info = self.word_info_list
             new_ending_len = len(self.word_ending_dict)
             last_key, last_value = list(self.word_ending_dict.items())[-1]
 
             if new_ending_len > ending_len:
-                array.append([f'Свойства {dict[i]}\nНормальная форма {normal_form[i]}\nОснова слова "{base[i]}"\nОкончания {last_key, last_value}\n'])
+                array.append([f'{new_param[i]}\nСвойства {new_info[i]}\nНормальная форма {normal_form[i]}\nОснова слова "{base[i]}"\nОкончания {last_key, last_value}\n'])
             else:
                 print(len(self.word_ending_dict))
-                array.append([f'Свойства {dict[i]}\nНормальная форма {normal_form[i]}\nОснова слова "{base[i]}"\n'])
+                array.append([f'Свойства {new_info[i]}\nНормальная форма {normal_form[i]}\nОснова слова "{base[i]}"\n'])
 
         print()
         # print(len(dict), len(normal_form), len(base), len(endings))
         string_result = '\n'.join(', '.join(str(x) for x in row) for row in array)
-        self.result_text_edit.setText(string_result)
+        lexemes_with_info = self.get_lexeme_with_info()
+
+        # Create a string with each element of the array on a new line
+        output_string = ''
+        for lexeme in lexemes_with_info:
+            output_string += str(lexeme) + '\n' + '\n'
+
+        # Set the text of the result text edit widget to the output string
+        self.result_text_edit.setText(output_string)
+       # self.result_text_edit.setText(str(self.get_lexeme_with_info()))
         if os.path.isfile('НеБезПрикола.txt'):
             pass
         else:
             with open('НеБезПрикола.txt', 'w') as f:
-                f.write(string_result)
+                f.write(output_string)
+
+        self.word_ending_dict = {}
 
     def showInputImportantInformation(self):
         pass
@@ -170,6 +178,7 @@ class MyWidget(QWidget):
         print(len(parsed_text))
         if len(parsed_text) == 3:
             result = self.get_inflect_on_word_case(parsed_text[0], parsed_text[1], parsed_text[2])
+            self.words_dict = {result}
             self.result_text_edit.setText(result)
         else:
             pass
@@ -190,6 +199,8 @@ class MyWidget(QWidget):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         file_name, _ = QFileDialog.getOpenFileName(self, "Выбрать файл", "", "Text Files (*.pdf)", options=options)
+
+
 
     def show_parts_of_speech_menu(self):
         menu = QMenu(self)
@@ -224,6 +235,7 @@ class MyWidget(QWidget):
         2. Нажмите на кнопку "Парсить" для обработки текста с помощью парсера.
         3. Нажмите на кнопку "Части речи" для фильтрации текста по частям речи.
         4. Введите слова для фильтрации в поле "Фильтровать" и нажмите на кнопку "Фильтровать" для фильтрации текста.
+        5. Введите в поле слово для преобразования, падеж (Р.п.), число (ед.ч.) через пробел
         """
         self.result_text_edit.setText(help_text)
 
@@ -257,7 +269,6 @@ class MyWidget(QWidget):
                     # print('- ', i.word.replace(self.stemmer.stem(word),''))
                     buf_list.append(i.word.replace(self.stemmer.stem(word),''))
             self.word_ending_dict[self.stemmer.stem(self.morph.parse(word)[0].word)] = buf_list
-
 
 
     def get_inflect_on_word_case(self, word, word_case, word_number):
@@ -317,8 +328,10 @@ class MyWidget(QWidget):
                 self.word_base_list.append(self.stemmer.stem(self.morph.parse(token)[0].word))
 
     def get_lexeme_with_info(self):
-        for word_index in range(len(self.words_dict)):
-            print(self.word_list[word_index], self.word_base_list[word_index], self.word_info_list[word_index][0], self.word_ending_dict[self.word_base_list[word_index]])
+        array = []
+        for word_index in range(1, len(self.words_dict)):
+            array.append(f'Слово:{self.word_list[word_index]}, \nОснова:{self.word_base_list[word_index]}, \nСвойства:{self.word_info_list[word_index]},\nОкончания:{self.word_ending_dict[self.word_base_list[word_index]]}')
+        return array
 
     def everythingThatYouWant(self):
         MyWidget(self.open_file())
