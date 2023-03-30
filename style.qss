@@ -10,7 +10,7 @@ QLabel {
 }
 
 QPushButton {
-    background-color: #4CAF50;
+    background-color: #226ee0;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -21,11 +21,11 @@ QPushButton {
 }
 
 QPushButton:hover {
-    background-color: #3E8E41;
+    background-color: #2284e0
 }
 
 QTextEdit {
-    border: 2px solid #4CAF50;
+    border: 2px solid #226ee0;
     border-radius: 5px;
     padding: 5px;
 }

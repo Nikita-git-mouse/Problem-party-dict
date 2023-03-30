@@ -3,13 +3,18 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, QLabel, QMenu, QAction
 from pycparser import CParser
 from PyPDF2 import PdfReader
+from anytree import Node, RenderTree
+
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk.stem.snowball import RussianStemmer
 
+from nltk.stem.snowball import RussianStemmer
+from nltk.corpus import stopwords
+
 import nltk
-#import spacy
+import spacy
 import pymorphy2
 
 
@@ -44,6 +49,9 @@ class MyWidget(QWidget):
         self.word_info_list = []
         self.word_base_list = []
         self.word_ending_dict = {}
+         # -------- №2 ----------
+        self.subordination_trees = []
+        self.components_system = []
 
     def initUI(self):
         self.parserClass = CParser
@@ -51,6 +59,7 @@ class MyWidget(QWidget):
         self.parse_file_button = QPushButton('Парсить файл')
         self.filter_button = QPushButton('Фильтровать')
         self.file_button = QPushButton('Выбрать файл')
+
         self.text_edit = QTextEdit()
         self.info_label = QLabel('Введите текст для парсинга')
         self.parts_of_speech_button = QPushButton('Части речи')
@@ -58,6 +67,14 @@ class MyWidget(QWidget):
         self.changeParams = QPushButton('Преобразование')
         self.parser = CParser
         self.help_button = QPushButton('Помощь')
+
+        self.filter_button = QPushButton('Фильтровать')
+        self.file_button = QPushButton('Выбрать файл')
+        # ----------------------Treeeeeeee---------------
+
+        self.Tree_button = QPushButton('Дерево Форм')
+        self.Analysis_button = QPushButton('Синнтаксический разбор')
+
 
         main_layout = QHBoxLayout()
         left_layout = QVBoxLayout()
@@ -69,9 +86,12 @@ class MyWidget(QWidget):
         left_layout.addWidget(self.changeParams)
         left_layout.addWidget(self.file_button)
         left_layout.addWidget(self.parts_of_speech_button)
+        #  ---- 2 ----
+        left_layout.addWidget(self.Tree_button)
+        left_layout.addWidget(self.Analysis_button)
 
         right_layout.addWidget(self.info_label)
-        right_layout.addWidget(self.text_edit)
+        #right_layout.addWidget(self.text_edit)
         left_layout.addWidget(self.help_button)
         main_layout.addLayout(left_layout)
         main_layout.addLayout(right_layout)
@@ -87,9 +107,16 @@ class MyWidget(QWidget):
         self.file_button.clicked.connect(self.open_file)
         self.parts_of_speech_button.clicked.connect(self.show_parts_of_speech_menu)
         self.setLayout(main_layout)
+
+        # ----- 2 ----
+        self.Tree_button.clicked.connect(self.syntacic_analysis_component_systems)
+        self.Analysis_button.clicked.connect(self.syntacic_analysis_subordination_trees)
+
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle('Приложение для парсинга текста')
         self.show()
+
+
 
     def show_info(self):
             print('dict ', self.words_dict)
@@ -339,6 +366,116 @@ class MyWidget(QWidget):
         self.show_info()
 
 
+#------------------------------------------------№2----------------------------------------------
+    import spacy
+    from spacy import displacy
+
+    def syntacic_analysis_subordination_trees(self):
+        """
+        Синтаксический разбор с помощью деревьев разбора
+        :return:
+        """
+        analResult = []
+        nlp = spacy.load('ru_core_news_sm')
+        doc = nlp(self.text)
+        #doc = nlp('Это может оказаться единственным выходом.')
+        # попробовала подобрать эти наборы букв под что-то более менее подходящее
+        for token in doc:
+            if token.dep_ == 'nsubj' or token.dep_ == 'nsubj:pass' or token.dep_ == 'csubj' or token.dep_ == 'xcomp':
+                analResult.append([token.text, token.pos_,  'подлежащее'])
+                self.subordination_trees.append('подлежащее')
+            elif token.dep_ == 'ROOT' or token.dep_ == 'conj' or token.dep_ == 'expl' or token.dep_ == 'parataxis' or token.dep_ == 'aux' or token.dep_ == 'ccomp':
+                analResult.append([token.text, token.pos_, 'глагол'])
+                self.subordination_trees.append('глагол')
+            elif token.dep_ == 'advmod' or token.dep_ == 'discourse' or token.dep_ == 'advcl':
+                analResult.append([token.text, token.pos_, 'обстоятельство'])
+                self.subordination_trees.append('обстоятельство')
+            elif token.dep_ == 'obj' or token.dep_ == 'nummod' or token.dep_ == 'obl' or token.dep_ == 'iobj' :
+                analResult.append([token.text, token.pos_, 'дополнение'])
+                self.subordination_trees.append('дополнение')
+            elif token.dep_ == 'nmod' or token.dep_ == 'amod'or token.dep_ == 'det' or token.dep_ == 'acl':
+                analResult.append([token.text, token.pos_, 'определение'])
+                self.subordination_trees.append('определение')
+            elif token.dep_ == 'cc' or token.dep_ == 'fixed' or token.dep_ == 'mark':
+                analResult.append([token.text, token.pos_, 'союз'])
+                self.subordination_trees.append('союз')
+            elif token.dep_ == 'case':
+                analResult.append([token.text, token.pos_, 'предлог'])
+                self.subordination_trees.append('предлог')
+            else:
+                analResult.append([token.text, token.pos_, token.dep_])
+                self.subordination_trees.append(token.dep_)
+        output_text = ""
+        for i in range(len(analResult)):
+            word = f"{analResult[i][0]} - {analResult[i][2]}"
+            output_text += word + "\n"
+            if analResult[i][2] == "punct" and analResult[i][0] != ",":
+                output_text += "\n"
+
+        self.result_text_edit.setText(output_text)
+
+
+    def syntacic_analysis_component_systems(self):
+        nlp = spacy.load('ru_core_news_sm')
+        doc = nlp(self.text)
+        # doc = nlp('В эти моменты отверженный превращается в беззащитного ребенка, он снова испытывает те же чувства, что в детстве, оказывается в том мире.')
+        # take each sentence
+
+        for sentence in doc.sents:
+            # print(sentence)
+            analysis_sentence = '('
+            left_bracket, right_bracket = 1, 0
+            for token in sentence:
+                # if token.dep_ == 'cc' or token.dep_ == 'fixed' or token.dep_ == 'mark':
+                #     pass
+                    # if left_bracket:
+                    #     left_bracket = False
+                    #     l += f'{token.text})'
+                    # elif not left_bracket:
+                    #     left_bracket = True
+                    #     l += f'({token.text}'
+
+                if token.dep_ == 'punct':
+                    if token.text != '.':
+                        if left_bracket != right_bracket:
+                            for i in range(left_bracket - right_bracket - 1):
+                                analysis_sentence += ')'
+                            right_bracket = left_bracket - 1
+                            analysis_sentence += token.text  + ' ' + '('
+                            right_bracket += 1
+                            left_bracket += 1
+                        elif left_bracket == right_bracket:
+                            analysis_sentence += token.text + ' '  + '('
+                            left_bracket += 1
+                elif token.dep_ == 'nmod' or token.dep_ == 'amod'or token.dep_ == 'det' or token.dep_ == 'acl':
+                    analysis_sentence += '(' + token.text + ' '
+                    left_bracket += 1
+                elif token.dep_ == 'case':
+                    analysis_sentence += '(' + token.text + ' ' + '('
+                    left_bracket += 2
+
+                    # еще придумать проверку какую-нибудь
+
+                else:
+                    analysis_sentence += token.text + ' '
+            if left_bracket != right_bracket:
+                for i in range(left_bracket - right_bracket):
+                    analysis_sentence += ')'
+            analysis_sentence += '.'
+            self.components_system.append(analysis_sentence)
+
+        result = self.components_system
+        output = '\n'.join(result).replace('.', '.\n')
+        self.result_text_edit.setText(output)
+
+    def build_tree(self, data, parent=None):
+        for item in data:
+            if isinstance(item, tuple):
+                node = Node(item[0], parent=parent)
+                self.build_tree(item[1], parent=node)
+            else:
+                Node(item, parent=parent)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('fusion')
@@ -347,5 +484,5 @@ if __name__ == '__main__':
 
     ex = MyWidget("Documents/example.pdf")
     ex.prepare_text()
-    ex.show_info()
+    #ex.show_info()
     sys.exit(app.exec_())
