@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QVBoxLayout, QHB
 from pycparser import CParser
 from PyPDF2 import PdfReader
 from anytree import Node, RenderTree
-
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
@@ -13,6 +12,9 @@ from nltk.stem.snowball import RussianStemmer
 from nltk.stem.snowball import RussianStemmer
 from nltk.corpus import stopwords
 
+
+from wiki_ru_wordnet import WikiWordnet
+wikiwordnet = WikiWordnet()
 import nltk
 import spacy
 import pymorphy2
@@ -49,9 +51,11 @@ class MyWidget(QWidget):
         self.word_info_list = []
         self.word_base_list = []
         self.word_ending_dict = {}
-         # -------- №2 ----------
+        # -------- №2 ----------
         self.subordination_trees = []
         self.components_system = []
+        # --------- №3 ----------
+        self.semantic_analysis_list_of_dicts = []
 
     def initUI(self):
         self.parserClass = CParser
@@ -60,8 +64,9 @@ class MyWidget(QWidget):
         self.filter_button = QPushButton('Фильтровать')
         self.file_button = QPushButton('Выбрать файл')
 
+        self.synonyms = QPushButton('Семантический анализ')
         self.text_edit = QTextEdit()
-        self.info_label = QLabel('Введите текст для парсинга')
+        self.info_label = QLabel('(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧   Не  ╰(▔∀▔)╯  Без  ( ˙꒳​˙ )   Прикола   (◕‿◕)')
         self.parts_of_speech_button = QPushButton('Части речи')
 
         self.changeParams = QPushButton('Преобразование')
@@ -88,8 +93,10 @@ class MyWidget(QWidget):
         left_layout.addWidget(self.parts_of_speech_button)
         #  ---- 2 ----
         left_layout.addWidget(self.Tree_button)
+
         left_layout.addWidget(self.Analysis_button)
 
+        left_layout.addWidget(self.synonyms)
         right_layout.addWidget(self.info_label)
         #right_layout.addWidget(self.text_edit)
         left_layout.addWidget(self.help_button)
@@ -105,6 +112,7 @@ class MyWidget(QWidget):
         self.parse_file_button.clicked.connect(self.parse_file_text)
         self.filter_button.clicked.connect(self.filter_text)
         self.file_button.clicked.connect(self.open_file)
+        self.synonyms.clicked.connect(self.semantic_analysis)
         self.parts_of_speech_button.clicked.connect(self.show_parts_of_speech_menu)
         self.setLayout(main_layout)
 
@@ -113,17 +121,17 @@ class MyWidget(QWidget):
         self.Analysis_button.clicked.connect(self.syntacic_analysis_subordination_trees)
 
         self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle('Приложение для парсинга текста')
+        self.setWindowTitle('Мы не прикалываемся, всё серьезно - это была шутка')
         self.show()
 
 
 
     def show_info(self):
-            print('dict ', self.words_dict)
-            print('normal form ', self.normal_form_dict)
-            print('info ', self.word_info_list)
-            print('base ', self.word_base_list)
-            print('endings', self.word_ending_dict)
+        print('dict ', self.words_dict)
+        print('normal form ', self.normal_form_dict)
+        print('info ', self.word_info_list)
+        print('base ', self.word_base_list)
+        print('endings', self.word_ending_dict)
 
     def parse_text(self):
         parsed_text = self.text_edit.toPlainText().split()
@@ -187,12 +195,8 @@ class MyWidget(QWidget):
 
         # Set the text of the result text edit widget to the output string
         self.result_text_edit.setText(output_string)
-       # self.result_text_edit.setText(str(self.get_lexeme_with_info()))
-        if os.path.isfile('НеБезПрикола.txt'):
-            pass
-        else:
-            with open('НеБезПрикола.txt', 'w') as f:
-                f.write(output_string)
+        # self.result_text_edit.setText(str(self.get_lexeme_with_info()))
+
 
         self.word_ending_dict = {}
 
@@ -254,6 +258,48 @@ class MyWidget(QWidget):
                 newdict[key] = value
         text = '\n'.join([f"{key}: {value}" for key, value in newdict.items()])
         self.result_text_edit.setText(text)
+
+    def semantic_analysis(self):
+        text = []
+        for word in self.word_base_list:
+            synsets = wikiwordnet.get_synsets(word)
+            if len(synsets) != 0:
+                dict = {}
+                synonyms_list = []
+                definition_dict = {}
+                hypernyms_list = []
+                hyponyms_list = []
+
+                # синоним, определение
+                synset = synsets[0]
+                for syn in synset.get_words():
+                    synonyms_list.append(syn.lemma())
+                    definition_dict[syn.lemma()] = syn.definition()
+                # гиперонимы
+                for hypernym in wikiwordnet.get_hypernyms(synset):
+                    for w in hypernym.get_words():
+                        hypernyms_list.append(w.lemma)
+                # гипонимы
+                for hyponyms in wikiwordnet.get_hyponyms(synset):
+                    for w in hyponyms.get_words():
+                        hyponyms_list.append(w.lemma())
+                # fill the result list
+
+                array = []
+                dict['word'] = word
+                dict['synonyms'] = synonyms_list
+                dict['definitions'] = definition_dict
+                dict['hypernyms'] = hypernyms_list
+                dict['hyponyms'] = hyponyms_list
+                result_word_semantic = f'Слово: {word} \nСписок синонимов: {synonyms_list} \nСписок определений: {definition_dict} \nСписок гиперонимов: {hypernyms_list} \nСписок гипонимов: {hyponyms_list} \n \n'
+                text.append(result_word_semantic)
+                self.semantic_analysis_list_of_dicts.append(dict)
+                # print(dict)
+        text = ''.join(text)
+        with open('НеБезПрикола.txt', 'w',encoding="utf-8") as f:
+            f.write(text)
+        self.result_text_edit.setText(text)
+
 
     def show_help(self):
         help_text = """
@@ -366,7 +412,7 @@ class MyWidget(QWidget):
         self.show_info()
 
 
-#------------------------------------------------№2----------------------------------------------
+    #------------------------------------------------№2----------------------------------------------
     import spacy
     from spacy import displacy
 
@@ -412,6 +458,9 @@ class MyWidget(QWidget):
             if analResult[i][2] == "punct" and analResult[i][0] != ",":
                 output_text += "\n"
 
+
+        with open('НеБезПрикола.txt', 'a+') as f:
+            f.write(output_text)
         self.result_text_edit.setText(output_text)
 
 
@@ -428,12 +477,12 @@ class MyWidget(QWidget):
             for token in sentence:
                 # if token.dep_ == 'cc' or token.dep_ == 'fixed' or token.dep_ == 'mark':
                 #     pass
-                    # if left_bracket:
-                    #     left_bracket = False
-                    #     l += f'{token.text})'
-                    # elif not left_bracket:
-                    #     left_bracket = True
-                    #     l += f'({token.text}'
+                # if left_bracket:
+                #     left_bracket = False
+                #     l += f'{token.text})'
+                # elif not left_bracket:
+                #     left_bracket = True
+                #     l += f'({token.text}'
 
                 if token.dep_ == 'punct':
                     if token.text != '.':
@@ -466,6 +515,10 @@ class MyWidget(QWidget):
 
         result = self.components_system
         output = '\n'.join(result).replace('.', '.\n')
+
+
+        with open('НеБезПрикола.txt', 'a+') as f:
+            f.write(output)
         self.result_text_edit.setText(output)
 
     def build_tree(self, data, parent=None):
@@ -475,6 +528,8 @@ class MyWidget(QWidget):
                 self.build_tree(item[1], parent=node)
             else:
                 Node(item, parent=parent)
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
